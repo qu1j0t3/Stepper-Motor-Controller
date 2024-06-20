@@ -66,7 +66,7 @@ char USI_I2C_Master_Transfer(char USISR_temp)
 		USI_I2C_WAIT_HIGH();
 		USI_CLOCK_STROBE();								//SCL Negative Edge
 	} while (!(USISR&(1<<USIOIF)));					//Do until transfer is complete
-	
+
 	USI_I2C_WAIT_LOW();
 
 	return USIDR;
@@ -96,7 +96,7 @@ char USI_I2C_Master_Start_Transmission(char *msg, char msg_size)
 	USI_SET_SCL_LOW();
 	USI_I2C_WAIT_LOW();
 	USI_SET_SDA_HIGH();
-	
+
 	/////////////////////////////////////////////////////////////////
 
 	do
@@ -119,7 +119,7 @@ char USI_I2C_Master_Start_Transmission(char *msg, char msg_size)
 				{
 					USI_I2C_Master_State = USI_MASTER_READ;
 				}
-				//Fall through to WRITE to transmit the address byte
+				// fall through
 
 			///////////////////////////////////////////////////////////////////
 			// Write Operation                                               //
@@ -132,7 +132,7 @@ char USI_I2C_Master_Start_Transmission(char *msg, char msg_size)
 				USI_SET_SCL_LOW();
 
 				USIDR = *(msg);				//Load data
-			
+
 				msg++;						//Increment buffer pointer
 
 				USI_I2C_Master_Transfer(USISR_TRANSFER_8_BIT);
@@ -158,11 +158,11 @@ char USI_I2C_Master_Start_Transmission(char *msg, char msg_size)
 				USI_SET_SDA_INPUT();
 
 				(*msg) = USI_I2C_Master_Transfer(USISR_TRANSFER_8_BIT);
-			
+
 				msg++;
 
 				USI_SET_SDA_OUTPUT();
-				
+
 				if(msg_size == 1)
 				{
 					USIDR = 0xFF;			//Load NACK to end transmission
@@ -178,18 +178,22 @@ char USI_I2C_Master_Start_Transmission(char *msg, char msg_size)
 
 	}while(--msg_size);			//Do until all data is read/written
 
-	
+
 	/////////////////////////////////////////////////////////////////
 	// Send Stop Condition                                         //
 	/////////////////////////////////////////////////////////////////
 
 	USI_SET_SDA_LOW();           				// Pull SDA low.
-	USI_I2C_WAIT_LOW();
-	USI_SET_SCL_INPUT();            				// Release SCL.
-	while( !(PIN_USI & (1<<PIN_USI_SCL)) );  	// Wait for SCL to go high.  
+	USI_I2C_WAIT_LOW();
+
+	USI_SET_SCL_INPUT();            				// Release SCL.
+
+	while( !(PIN_USI & (1<<PIN_USI_SCL)) );  	// Wait for SCL to go high.
+
 	USI_I2C_WAIT_HIGH();
-	USI_SET_SDA_INPUT();            				// Release SDA.
-	while( !(PIN_USI & (1<<PIN_USI_SDA)) );  	// Wait for SDA to go high. 
+	USI_SET_SDA_INPUT();            				// Release SDA.
+
+	while( !(PIN_USI & (1<<PIN_USI_SDA)) );  	// Wait for SDA to go high.
 
 	return 1;
 }

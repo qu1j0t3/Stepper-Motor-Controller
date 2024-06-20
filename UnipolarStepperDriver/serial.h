@@ -32,6 +32,8 @@ unsigned char serial_available();
 // Pulls the first byte from the serial port buffer and deletes it
 unsigned char serial_read();
 
+unsigned int serial_read_buffer(char* data, int len);
+
 // Serial_Flush
 // Flush the Serial buffer
 // Deletes any data currently in the read buffer

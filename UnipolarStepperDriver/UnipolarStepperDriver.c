@@ -20,14 +20,14 @@
 #include "usi_i2c_master.h"
 
 char			step_current;
-char			step_state;
+int8_t			step_state;
 char			step_max;
 
 char					step_mode;
 char 					step_dir;
 char 					step_enabled;
 volatile int			step_count		= 0;
-volatile int			step_compare	= 0;
+volatile uint16_t		step_compare	= 0;
 
 char serial_i2c_buffer[8];
 char serial_i2c_buffer_pos;
@@ -39,14 +39,14 @@ volatile char step_table[16] = {0b00001000, 0b00100000, 0b00010000, 0b01000000,
 
 //Double Phase
 							    0b00101000, 0b00110000, 0b01010000, 0b01001000,
-								
+
 //Half Stepping
 								0b00001000, 0b00101000, 0b00100000, 0b00110000,
-								
+
 								0b00010000, 0b01010000, 0b01000000, 0b01001000};
 
-inline void status_led_on();
-inline void status_led_off();
+void status_led_on();
+void status_led_off();
 inline void process_serial_message();
 
 void set_rgb_led(char led);
@@ -112,7 +112,7 @@ ISR(TIMER1_COMPA_vect)
 				set_rgb_led(0b00000001);
 				if(--step_state < 0) step_state = step_max;
 			}
-		
+
 			if(step_enabled == 1)
 			{
 				if(step_mode == 0)
@@ -154,7 +154,7 @@ ISR(TIMER0_COMPB_vect)
 }
 
 ISR(TIMER0_COMPA_vect)
-{	
+{
 	if(step_enabled == 1)
 	{
 		PORTD |= step_current;
@@ -186,11 +186,11 @@ int main()
 		USIDR = 0xFF;
 		USICR = (0 << USISIE) | (0 << USIOIE) | (1 << USIWM1) | (0 << USIWM0) | (1 << USICS1) | (0 << USICS0) | (1 << USICLK) | (0 << USITC);
 		USISR = (1 << USISIF) | (1 << USIOIF) | (1 << USIPF)  | (1 << USIDC)  | (0x00 << USICNT0);
-	
-	USI_Slave_register_buffer[0] = (unsigned char*)&step_compare;
-	USI_Slave_register_buffer[1] = (unsigned char*)(&step_compare)+1;
-	USI_Slave_register_buffer[2] = (unsigned char*)&step_count;
-	USI_Slave_register_buffer[3] = (unsigned char*)(&step_count)+1;
+
+	USI_Slave_register_buffer[0] = (char*)&step_compare;
+	USI_Slave_register_buffer[1] = (char*)(&step_compare)+1;
+	USI_Slave_register_buffer[2] = (char*)&step_count;
+	USI_Slave_register_buffer[3] = (char*)(&step_count)+1;
 	USI_Slave_register_buffer[4] = &step_dir;
 	USI_Slave_register_buffer[5] = &step_mode;
 	USI_Slave_register_buffer[6] = &step_enabled;
@@ -205,17 +205,17 @@ int main()
 	}
 }
 
-inline void process_serial_message()
+void process_serial_message()
 {
 	if(serial_available() > 2)
 	{
 		status_led_on();
-		
+
 		char buffer[3];
 		serial_read_buffer(buffer, 3);
 
 		switch(buffer[0])
-		{		
+		{
 			//Set I2C Address
 			case 0x22:
 				usi_i2c_slave_address = buffer[1];
@@ -239,14 +239,14 @@ inline void process_serial_message()
 					char addr = buffer[2] << 1 | 1;
 					serial_i2c_buffer[0] = addr;
 					USI_I2C_Master_Start_Transmission(serial_i2c_buffer, buffer[1]+1);
-					for(char i = 1; i <= buffer[1]; i++)
+					for(uint8_t i = 1; i <= buffer[1]; i++)
 					{
 						serial_transmit_byte(serial_i2c_buffer[i]);
 					}
 				}
 				break;
 		}
-		status_led_off();	
+		status_led_off();
 	}
 }
 
@@ -259,7 +259,7 @@ void fill_i2c_buffer_from_serial(char len, char addr, char rw)
 	//Put address into i2c buffer
 	serial_i2c_buffer[0] = addr;
 
-	for(char i = 1; i <= len; i++)
+	for(uint8_t i = 1; i <= len; i++)
 	{
 		while(serial_available() < 1);
 		serial_i2c_buffer[i] = serial_read();

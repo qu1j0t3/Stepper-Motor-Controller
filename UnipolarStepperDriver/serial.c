@@ -51,7 +51,7 @@ unsigned char serial_read()
     return 0;
   }
   char value = serial_buffer[0];
-  for(char i = 1; i < SERIAL_BUFFER_LENGTH; i++)
+  for(uint8_t i = 1; i < SERIAL_BUFFER_LENGTH; i++)
   {
     serial_buffer[i-1] = serial_buffer[i];
   }

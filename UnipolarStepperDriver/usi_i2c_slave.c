@@ -31,7 +31,7 @@ char usi_i2c_mode;
 // need to read/write in your code.  This abstracts the buffer and makes it easier to write directly
 // to values in your code.
 char* USI_Slave_register_buffer[USI_SLAVE_REGISTER_COUNT];
-char  USI_Slave_internal_address = 0;
+uint8_t  USI_Slave_internal_address = 0;
 char  USI_Slave_internal_address_set = 0;
 
 enum
@@ -211,7 +211,8 @@ ISR(USI_OVERFLOW_vect)
 				USISR = USI_SLAVE_SET_START_COND_USISR;
 				return;
 			}
-			//else: fall through into SEND_DATA
+			//else:
+			// fall through
 
 		/////////////////////////////////////////////////////////////////////////
 		// Case USI_SLAVE_SEND_DATA                                            //
